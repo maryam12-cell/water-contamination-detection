@@ -1,20 +1,24 @@
 import { useAuth } from '../context/AuthContext'
+import { useLanguage } from '../i18n/LanguageContext'
 import PageHeader from '../components/PageHeader'
 import RoleBadge from '../components/RoleBadge'
+import LanguageToggle from '../components/LanguageToggle'
 
 export default function Settings() {
   const { user } = useAuth()
+  const { t, locale } = useLanguage()
 
   const rows = [
-    ['Name', user.name],
-    ['Email', user.email],
-    ['Role', <RoleBadge key="role" role={user.role} />],
-    ['Member since', user.created_at.slice(0, 10)],
+    [t('dashboard.name'), user.name],
+    [t('dashboard.email'), <span key="email" className="font-latin" dir="ltr">{user.email}</span>],
+    [t('dashboard.role'), <RoleBadge key="role" role={user.role} />],
+    [t('settings.memberSince'), new Date(user.created_at + 'Z').toLocaleDateString(locale, { dateStyle: 'medium' })],
+    [t('lang.label'), <LanguageToggle key="lang" />],
   ]
 
   return (
     <>
-      <PageHeader title="Settings" description="Your account information" />
+      <PageHeader title={t('settings.title')} description={t('settings.desc')} />
       <section className="rounded-2xl bg-white p-6 shadow-sm">
         <dl className="divide-y divide-slate-100">
           {rows.map(([label, value]) => (

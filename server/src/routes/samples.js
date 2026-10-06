@@ -4,6 +4,7 @@ import db, { WATER_BODY_TYPES } from '../db.js'
 import { requireAuth } from '../middleware/auth.js'
 import { uploadImage, removeUploadedFile, SERVER_ROOT } from '../middleware/upload.js'
 import { analyzeSample } from '../analysis/index.js'
+import { saveCropRecommendations } from '../recommendation/index.js'
 
 const router = Router()
 
@@ -100,6 +101,7 @@ router.post('/', uploadImage('image'), async (req, res) => {
         analysis.modelVersion,
         analysis.reasons.join('; ') || null,
       ).lastInsertRowid
+      saveCropRecommendations(analysisId, { isContaminated: analysis.isContaminated, ph: form.readings.ph })
       return { sampleId, analysisId }
     })()
 

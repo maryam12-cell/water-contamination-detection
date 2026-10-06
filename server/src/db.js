@@ -55,6 +55,7 @@ db.exec(`
     id                 INTEGER PRIMARY KEY AUTOINCREMENT,
     analysis_id        INTEGER NOT NULL REFERENCES analysis_results(id) ON DELETE CASCADE,
     crop_name          TEXT    NOT NULL,
+    is_suitable        INTEGER NOT NULL DEFAULT 0 CHECK (is_suitable IN (0, 1)),
     suitability_score  REAL    CHECK (suitability_score BETWEEN 0 AND 100),
     reason             TEXT,
     created_at         TEXT    NOT NULL DEFAULT (datetime('now'))
@@ -88,5 +89,16 @@ if (!currentSamplesSql.includes("'stream'")) {
   db.pragma('foreign_keys = ON')
   console.log('Migrated samples table: water body types are now', WATER_BODY_TYPES.join(', '))
 }
+
+// Migration: crop_recommendations gained an is_suitable column
+const cropColumns = db.pragma('table_info(crop_recommendations)').map((c) => c.name)
+if (!cropColumns.includes('is_suitable')) {
+  db.exec(`ALTER TABLE crop_recommendations
+           ADD COLUMN is_suitable INTEGER NOT NULL DEFAULT 0 CHECK (is_suitable IN (0, 1))`)
+  console.log('Migrated crop_recommendations: added is_suitable column')
+}
+
+// One row per crop per analysis
+db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_crops_analysis_crop ON crop_recommendations(analysis_id, crop_name)')
 
 export default db

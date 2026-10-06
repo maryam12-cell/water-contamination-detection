@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { AlertTriangle, FlaskConical, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useLanguage } from '../i18n/LanguageContext'
 import { api } from '../api'
 import PageHeader from '../components/PageHeader'
-import RoleBadge from '../components/RoleBadge'
 
 const percent = (part, total) => (total ? Math.round((part / total) * 100) : 0)
 
@@ -22,7 +22,7 @@ function SummaryCard({ title, value, note, icon: Icon, tone, loading }) {
           {loading ? (
             <div className="mt-2 h-9 w-16 animate-pulse rounded bg-slate-200" />
           ) : (
-            <p className="mt-1 text-3xl font-bold text-slate-800">{value}</p>
+            <p className="font-latin mt-1 text-3xl font-bold text-slate-800">{value}</p>
           )}
         </div>
         <div className={`rounded-xl p-3 ${tones[tone]}`}>
@@ -34,56 +34,17 @@ function SummaryCard({ title, value, note, icon: Icon, tone, loading }) {
   )
 }
 
-function UsersTable() {
-  const [users, setUsers] = useState([])
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    api('/admin/users')
-      .then((data) => setUsers(data.users))
-      .catch((err) => setError(err.message))
-  }, [])
-
-  return (
-    <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
-      <h2 className="text-lg font-semibold text-slate-800">All users</h2>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[480px] text-left text-sm">
-          <thead className="border-b border-slate-200 text-slate-500">
-            <tr>
-              <th className="py-2 pr-4 font-medium">Name</th>
-              <th className="py-2 pr-4 font-medium">Email</th>
-              <th className="py-2 pr-4 font-medium">Role</th>
-              <th className="py-2 font-medium">Joined</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id} className="border-b border-slate-100 last:border-0">
-                <td className="py-2.5 pr-4">{u.name}</td>
-                <td className="py-2.5 pr-4">{u.email}</td>
-                <td className="py-2.5 pr-4"><RoleBadge role={u.role} /></td>
-                <td className="py-2.5 whitespace-nowrap">{u.created_at.slice(0, 10)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  )
-}
-
 export default function Dashboard() {
   const { user } = useAuth()
+  const { t, tError } = useLanguage()
   const [summary, setSummary] = useState(null)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(null)
   const isAdmin = user.role === 'admin'
 
   useEffect(() => {
     api('/samples/summary')
       .then(setSummary)
-      .catch((err) => setError(err.message))
+      .catch(setError)
   }, [])
 
   const loading = !summary && !error
@@ -92,44 +53,38 @@ export default function Dashboard() {
   return (
     <>
       <PageHeader
-        title={`Welcome, ${user.name}!`}
-        description={
-          isAdmin
-            ? 'Overview of all water samples in the system.'
-            : 'Upload a water sample to check contamination and get crop recommendations.'
-        }
+        title={t('dashboard.welcome', { name: user.name })}
+        description={isAdmin ? t('dashboard.adminDesc') : t('dashboard.userDesc')}
       />
 
-      {error && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      {error && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{tError(error)}</p>}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <SummaryCard
-          title="Total Samples"
+          title={t('dashboard.totalSamples')}
           value={total}
-          note={pending ? `${pending} awaiting analysis` : 'All samples analysed'}
+          note={pending ? t('dashboard.awaiting', { count: pending }) : t('dashboard.allAnalysed')}
           icon={FlaskConical}
           tone="sky"
           loading={loading}
         />
         <SummaryCard
-          title="Contaminated"
+          title={t('dashboard.contaminated')}
           value={contaminated}
-          note={`${percent(contaminated, total)}% of all samples`}
+          note={t('dashboard.percentOfAll', { percent: percent(contaminated, total) })}
           icon={AlertTriangle}
           tone="red"
           loading={loading}
         />
         <SummaryCard
-          title="Safe"
+          title={t('dashboard.safe')}
           value={safe}
-          note={`${percent(safe, total)}% of all samples`}
+          note={t('dashboard.percentOfAll', { percent: percent(safe, total) })}
           icon={ShieldCheck}
           tone="green"
           loading={loading}
         />
       </div>
-
-      {isAdmin && <UsersTable />}
     </>
   )
 }

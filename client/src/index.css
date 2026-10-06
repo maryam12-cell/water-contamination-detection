@@ -1,1 +1,15 @@
 @import "tailwindcss";
+
+/* Urdu: Nastaliq script is tall, so give every line more room so letters aren't clipped */
+html[lang="ur"] body {
+  font-family: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", serif;
+}
+html[lang="ur"] body * {
+  line-height: 2.1 !important;
+}
+/* Numbers, units and form inputs stay in the normal font, which reads better for digits */
+html[lang="ur"] input,
+html[lang="ur"] .font-latin {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.5 !important;
+}

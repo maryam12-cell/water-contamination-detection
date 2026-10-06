@@ -5,6 +5,8 @@ import db from './db.js'
 import authRoutes from './routes/auth.js'
 import adminRoutes from './routes/admin.js'
 import sampleRoutes from './routes/samples.js'
+import cropRoutes from './routes/crops.js'
+import reportRoutes from './routes/reports.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -21,6 +23,8 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/samples', sampleRoutes)
+app.use('/api/crops', cropRoutes)
+app.use('/api/reports', reportRoutes)
 
 // Unknown API routes
 app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }))
